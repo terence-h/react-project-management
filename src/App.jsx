@@ -3,57 +3,51 @@ import NoProjectSelected from "./components/NoProjectSelected";
 import Sidebar from "./components/Sidebar";
 import CreateProject from "./components/CreateProject";
 import SelectedProject from "./components/SelectedProject";
+import Modal from "./components/Modal";
 
 function App() {
 	const [createProjectUI, setCreateProjectUI] = useState(false);
 	const [selectedProject, setSelectedProject] = useState();
 
-	const createProjectData = useRef({
-		title: "",
-		description: "",
-		date: "",
-		tasks: [],
-	});
 	const listOfProjects = useRef([]);
+	const modal = useRef();
 
-	function ToggleCreateProjectUI() {
-		setCreateProjectUI((prevState) => !prevState);
+	function OpenCreateProject() {
+		if (selectedProject) {
+			setSelectedProject(null);
+		}
+		setCreateProjectUI(true);
 	}
 
-	function OnCreateProject() {
+	function CloseCreateProject() {
+		setCreateProjectUI(false);
+	}
+
+	function OnCreateProject(data) {
 		for (let i = 0; i < listOfProjects.current.length; i++) {
-			if (listOfProjects.current[i].title === createProjectData.current.title) {
-				console.log("DUPLICATE TITLE");
+			if (listOfProjects.current[i].title === data.title) {
 				return false;
 			}
 		}
 
-		listOfProjects.current.push(createProjectData.current);
-		createProjectData.current = {
-			title: "",
-			description: "",
-			date: "",
-			tasks: [],
-		};
-		ToggleCreateProjectUI();
+		listOfProjects.current.push(data);
+		CloseCreateProject();
 	}
 
 	function OnSelectProject(data) {
+		if (createProjectUI) {
+			setCreateProjectUI(false);
+		}
+
 		setSelectedProject(data);
 	}
 
 	function OnDeleteProject(data) {
-		const index = listOfProjects.current.findIndex(
-			(x) => x.title === data.title
-		);
-
-		listOfProjects.current.splice(index, 1);
-		setSelectedProject(null);
+		modal.current.open(data);
 	}
 
 	function OnAddTask(data, task) {
 		if (!task) {
-			console.log("EMPTY TASK");
 			return;
 		}
 
@@ -66,21 +60,23 @@ function App() {
 		setSelectedProject({ ...data });
 	}
 
-	console.log("----- RERENDERING -----");
-
 	return (
 		<main className="h-screen flex gap-8">
+			<Modal
+				ref={modal}
+				listOfProjects={listOfProjects}
+				selectedProject={selectedProject}
+				updateUI={setSelectedProject}
+			>
+				<h2>Are you sure you want to delete this project?</h2>
+			</Modal>
 			<Sidebar
-				onToggleCreateProject={ToggleCreateProjectUI}
+				onCreateProject={OpenCreateProject}
 				onSelectProject={OnSelectProject}
 				ref={listOfProjects}
 			/>
 			{createProjectUI ? (
-				<CreateProject
-					onCancel={ToggleCreateProjectUI}
-					onSave={OnCreateProject}
-					ref={createProjectData}
-				/>
+				<CreateProject onCancel={CloseCreateProject} onSave={OnCreateProject} />
 			) : selectedProject ? (
 				<SelectedProject
 					projectData={selectedProject}
@@ -89,7 +85,7 @@ function App() {
 					onClearTask={OnClearTask}
 				/>
 			) : (
-				<NoProjectSelected onToggleCreateProject={ToggleCreateProjectUI} />
+				<NoProjectSelected onCreateProject={OpenCreateProject} />
 			)}
 		</main>
 	);

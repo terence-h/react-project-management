@@ -7,6 +7,12 @@ export default function SelectedProject({
 	onClearTask,
 }) {
 	const taskData = useRef();
+
+	function onFormSubmit(e) {
+		e.preventDefault();
+		onAddTask(projectData, taskData.current["task-info"].value.trim());
+	}
+
 	return (
 		<div className="mt-24 w-3/4">
 			<div className="w-3/4">
@@ -16,7 +22,7 @@ export default function SelectedProject({
 							{projectData.title}
 						</h2>
 						<button
-							className="hover:text-red-700"
+							className="text-stone-700 hover:text-red-700"
 							onClick={() => {
 								onDeleteProject(projectData);
 							}}
@@ -32,18 +38,12 @@ export default function SelectedProject({
 					<p className="text-stone-800 my-4">{projectData.description}</p>
 				</header>
 				<h2 className="text-2xl font-bold text-stone-500 mb-4">Tasks</h2>
-				<form className="mt-4" ref={taskData}>
+				<form className="mt-4" ref={taskData} onSubmit={(e) => onFormSubmit(e)}>
 					<input
 						name="task-info"
 						className="w-64 px-2 py-1 rounded-sm bg-stone-200"
 					/>
-					<button
-						type="button"
-						className="px-4 py-1 text-xs md:text-base text-end hover:text-stone-600"
-						onClick={() =>
-							onAddTask(projectData, taskData.current["task-info"].value.trim())
-						}
-					>
+					<button className="px-4 py-1 text-xs md:text-base text-end text-stone-700 hover:text-stone-900">
 						Add Task
 					</button>
 				</form>
@@ -56,9 +56,7 @@ export default function SelectedProject({
 									{task}
 									<button
 										className="hover:text-red-700"
-										onClick={() =>
-											onClearTask(projectData, index)
-										}
+										onClick={() => onClearTask(projectData, index)}
 									>
 										Clear
 									</button>
